@@ -1,26 +1,87 @@
 import Vue from 'vue';
 
+var BASE_REF_NAME = 'vue-pincode-input';
+var LETTER_REGEXP = '^\\d{1}$';
+
 var script = Vue.extend({
-  props: {
-    length: { type: Number, default: 4 },
-  },
-
-  data: () => ({
-    letters: [],
-  }),
-
-  watch: {
-    length: {
-      handler(val) {
-        for (let i = 0; i < val; i += 1) {
-          this.letters.push({});
-          this.$set(this.letters[i], 'key', i);
-          this.$set(this.letters[i], 'value', '');
-        }
-      },
-      immediate: true,
+    props: {
+        value: { type: String, required: true },
+        length: { type: Number, default: 4 },
+        autofocus: { type: Boolean, default: true },
     },
-  },
+    data: function () { return ({
+        baseRefName: BASE_REF_NAME,
+        letters: [],
+        focusedLetterIdx: 0,
+    }); },
+    computed: {
+        pinCodeComputed: function () {
+            return this.letters.reduce(function (pin, letter) { return pin + letter.value; }, '');
+        },
+    },
+    watch: {
+        length: {
+            handler: function (val) {
+                var _this = this;
+                var _loop_1 = function (i) {
+                    this_1.letters.push({ key: i, value: '' });
+                    this_1.$watch("letters." + i + ".value", function (newVal, oldVal) {
+                        _this.onLetterChanged(i, newVal, oldVal);
+                    });
+                };
+                var this_1 = this;
+                for (var i = 0; i < val; i += 1) {
+                    _loop_1(i);
+                }
+            },
+            immediate: true,
+        },
+        focusedLetterIdx: function (val) {
+            this.focusLetterByIndex(val);
+        },
+        pinCodeComputed: function (val) {
+            this.$emit('input', val);
+        },
+    },
+    mounted: function () {
+        if (this.autofocus) {
+            this.focusLetterByIndex(0);
+        }
+    },
+    methods: {
+        letterIsValid: function (letter) {
+            var letterIsValid = true;
+            if (letter.length === 1 && !letter.match(LETTER_REGEXP)) {
+                letterIsValid = false;
+            }
+            else if (letter.length > 1) {
+                letterIsValid = false;
+            }
+            return letterIsValid;
+        },
+        onLetterChanged: function (index, newVal, oldVal) {
+            var _this = this;
+            if (!this.letterIsValid(newVal)) {
+                this.$nextTick(function () {
+                    _this.letters[index].value = oldVal;
+                });
+            }
+            else if (newVal.length) {
+                this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
+            }
+        },
+        setFocusedLetterIndex: function (newIndex) {
+            if (newIndex < 0 || newIndex >= this.length) {
+                return;
+            }
+            this.focusedLetterIdx = newIndex;
+        },
+        focusLetterByIndex: function (index) {
+            var refName = "" + this.baseRefName + index;
+            this.$refs[refName][0].focus();
+            this.$refs[refName][0].select();
+        },
+    },
 });
 
 function normalizeComponent(template, style, script, scopeId, isFunctionalTemplate, moduleIdentifier
@@ -167,13 +228,13 @@ var browser = createInjector;
 const __vue_script__ = script;
 
 /* template */
-var __vue_render__ = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"hello"},_vm._l((_vm.letters),function(letter){return _c('input',_vm._b({directives:[{name:"model",rawName:"v-model",value:(letter.value),expression:"letter.value"}],key:letter.key,staticClass:"vue-pincode-input",attrs:{"type":"text"},domProps:{"value":(letter.value)},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(letter, "value", $event.target.value);}}},'input',_vm.$attrs,false))}),0)};
+var __vue_render__ = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"vue-pincode-input-wrapper"},_vm._l((_vm.letters),function(letter,index){return _c('input',_vm._b({directives:[{name:"model",rawName:"v-model",value:(letter.value),expression:"letter.value"}],key:letter.key,ref:("" + _vm.baseRefName + index),refInFor:true,staticClass:"vue-pincode-input",attrs:{"type":"tel"},domProps:{"value":(letter.value)},on:{"focus":function($event){return _vm.setFocusedLetterIndex(index)},"input":function($event){if($event.target.composing){ return; }_vm.$set(letter, "value", $event.target.value);}}},'input',_vm.$attrs,false))}),0)};
 var __vue_staticRenderFns__ = [];
 
   /* style */
   const __vue_inject_styles__ = function (inject) {
     if (!inject) return
-    inject("data-v-4cfac43e_0", { source: ".vue-pincode-input{padding:.35rem 1rem}", map: undefined, media: undefined });
+    inject("data-v-58735003_0", { source: ".vue-pincode-input-wrapper{display:inline-flex}.vue-pincode-input{outline:0;margin:3px;padding:1rem;max-width:20px;text-align:center;font-size:1.1rem;border:none;border-radius:3px;box-shadow:0 0 3px rgba(0,0,0,.5)}.vue-pincode-input:focus{box-shadow:0 0 6px rgba(0,0,0,.5)}", map: undefined, media: undefined });
 
   };
   /* scoped */
@@ -183,9 +244,9 @@ var __vue_staticRenderFns__ = [];
   /* functional template */
   const __vue_is_functional_template__ = false;
   /* style inject SSR */
-  
 
-  
+
+
   var Component = normalizeComponent_1(
     { render: __vue_render__, staticRenderFns: __vue_staticRenderFns__ },
     __vue_inject_styles__,

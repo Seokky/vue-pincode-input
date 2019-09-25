@@ -5,27 +5,22 @@
       :key="letter.key"
       :ref="`${baseRefName}${index}`"
       v-model="letter.value"
-      type="tel"
       v-bind="$attrs"
+      type="tel"
       class="vue-pincode-input"
-      @focus="focusedLetterIndex = index"
+      @focus="setFocusedLetterIndex(index)"
     >
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-
-type TLetter = {
-  key: number,
-  value: string,
-}
-
-const BASE_REF_NAME = 'vue-pincode-input';
-const LETTER_REGEXP = '^\\d{1}$';
+import { TLetter } from './types/Letter';
+import { BASE_REF_NAME, LETTER_REGEXP } from './constants';
 
 export default Vue.extend({
   props: {
+    value: { type: String, required: true },
     length: { type: Number, default: 4 },
     autofocus: { type: Boolean, default: true },
   },
@@ -33,8 +28,14 @@ export default Vue.extend({
   data: () => ({
     baseRefName: BASE_REF_NAME,
     letters: [] as TLetter[],
-    focusedLetterIndex: 0,
+    focusedLetterIdx: 0,
   }),
+
+  computed: {
+    pinCodeComputed(): string {
+      return this.letters.reduce((pin, letter) => pin + letter.value, '');
+    },
+  },
 
   watch: {
     length: {
@@ -43,14 +44,17 @@ export default Vue.extend({
           this.letters.push({ key: i, value: '' });
 
           this.$watch(`letters.${i}.value`, (newVal, oldVal) => {
-            this.validateLetter(i, newVal, oldVal);
+            this.onLetterChanged(i, newVal, oldVal);
           });
         }
       },
       immediate: true,
     },
-    focusedLetterIndex(val) {
+    focusedLetterIdx(val) {
       this.focusLetterByIndex(val);
+    },
+    pinCodeComputed(val) {
+      this.$emit('input', val);
     },
   },
 
@@ -61,31 +65,34 @@ export default Vue.extend({
   },
 
   methods: {
-    validateLetter(index: number, newVal: string, oldVal: string) {
+    letterIsValid(letter: string): boolean {
       let letterIsValid = true;
 
-      if (newVal.length === 1) {
-        if (!newVal.match(LETTER_REGEXP)) {
-          letterIsValid = false;
-        }
-      } else if (newVal.length > 1) {
+      if (letter.length === 1 && !letter.match(LETTER_REGEXP)) {
+        letterIsValid = false;
+      } else if (letter.length > 1) {
         letterIsValid = false;
       }
 
-      if (!letterIsValid) {
+      return letterIsValid;
+    },
+    onLetterChanged(index: number, newVal: string, oldVal: string): void {
+      if (!this.letterIsValid(newVal)) {
         this.$nextTick(() => {
           this.letters[index].value = oldVal;
         });
       } else if (newVal.length) {
-        this.increaseFocusedLetterIndex();
+        this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
       }
     },
-    increaseFocusedLetterIndex(): void {
-      this.focusedLetterIndex = (this.focusedLetterIndex < (this.length - 1))
-        ? this.focusedLetterIndex + 1
-        : this.focusedLetterIndex;
+    setFocusedLetterIndex(newIndex: number): void {
+      if (newIndex < 0 || newIndex >= this.length) {
+        return;
+      }
+
+      this.focusedLetterIdx = newIndex;
     },
-    focusLetterByIndex(index: number) {
+    focusLetterByIndex(index: number): void {
       const refName = `${this.baseRefName}${index}`;
 
       (this as any).$refs[refName][0].focus();
@@ -101,15 +108,15 @@ export default Vue.extend({
 }
 
 .vue-pincode-input {
-  padding: 1rem;
+  outline: none;
   margin: 3px;
+  padding: 1rem;
   max-width: 20px;
   text-align: center;
   font-size: 1.1rem;
   border: none;
   border-radius: 3px;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-  outline: none;
 
   &:focus {
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
