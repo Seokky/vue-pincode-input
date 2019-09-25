@@ -16,11 +16,11 @@ Styles that component have are written just for demo. But that styles are overri
 ## Usage
 
 ```
-  npm i -D vue-pincode-input
+  npm i --save vue-pincode-input
 ```
 or with yarn
 ```
-  yarn add --dev vue-pincode-input
+  yarn add vue-pincode-input
 ```
 
 Then in any component:
