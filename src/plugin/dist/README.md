@@ -1,4 +1,4 @@
-# vue-pin-input
+# vue-pincode-input
 Great pincode input component for Vue.js applications.
 
 ## Features

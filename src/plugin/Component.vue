@@ -29,7 +29,8 @@ export default Vue.extend({
   data: () => ({
     baseRefName: BASE_REF_NAME,
     letters: [] as TLetter[],
-    focusedLetterIdx: 0,
+    focusedLetterIdx: -1,
+    watchers: {} as any,
   }),
 
   computed: {
@@ -39,12 +40,18 @@ export default Vue.extend({
   },
 
   watch: {
+    value(val) {
+      this.acceptParentValue();
+    },
     length: {
       handler(val) {
+        this.unsetLettersWatchers();
+        this.letters = [];
+
         for (let i = 0; i < val; i += 1) {
           this.letters.push({ key: i, value: '' });
 
-          this.$watch(`letters.${i}.value`, (newVal, oldVal) => {
+          this.watchers[`letters.${i}.value`] = this.$watch(`letters.${i}.value`, (newVal, oldVal) => {
             this.onLetterChanged(i, newVal, oldVal);
           });
         }
@@ -60,12 +67,33 @@ export default Vue.extend({
   },
 
   mounted() {
-    if (this.autofocus) {
-      this.focusLetterByIndex(0);
-    }
+    this.acceptParentValue().then(() => {
+      if (this.autofocus) {
+        this.setFocusedLetterIndex(0);
+      }
+    });
   },
 
   methods: {
+    acceptParentValue(): Promise<void> {
+      if (!this.value) {
+        return new Promise((res, rej) => res());
+      }
+
+      if (this.value.length !== this.length) {
+        return new Promise((res, rej) => res());
+      }
+
+      return new Promise((resolve, reject) => {
+        const letters = this.value.split('');
+
+        for (let i = 0; i < letters.length; i += 1) {
+          this.letters[i].value = letters[i] || '';
+        }
+
+        resolve();
+      });
+    },
     letterIsValid(letter: string): boolean {
       let letterIsValid = true;
 
@@ -104,6 +132,11 @@ export default Vue.extend({
         this.setFocusedLetterIndex(this.focusedLetterIdx - 1);
         e.preventDefault();
       }
+    },
+    unsetLettersWatchers(): void {
+      Object.keys(this.watchers).forEach((watcher) => {
+        this.watchers[watcher]();
+      });
     },
   },
 });
