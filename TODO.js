@@ -1,3 +1,3 @@
 /* TODO: rollup minify */
-/* TODO: v-model */
 /* TODO: husky */
+/* backspace auto decrementing focus */

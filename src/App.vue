@@ -2,6 +2,7 @@
   <div id="app">
     <div class="input-wrapper">
       <PincodeInput
+        v-model="code"
         placeholder="0"
       />
     </div>
@@ -19,6 +20,10 @@ export default Vue.extend({
   components: {
     PincodeInput,
   },
+
+  data: () => ({
+    code: '',
+  }),
 });
 </script>
 
@@ -26,9 +31,5 @@ export default Vue.extend({
 #app {
   margin-top: 100px;
   text-align: center;
-}
-
-.input-wrapper {
-  margin: 0 auto;
 }
 </style>
