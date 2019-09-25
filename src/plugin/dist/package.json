@@ -1,10 +1,14 @@
 {
   "name": "vue-pincode-input",
   "version": "0.0.1",
+  "private": false,
   "description": "Great pincode input component for Vue.js applications.",
   "main": "PincodeInput.min.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "core-js": "^2.6.5"
   },
   "repository": {
     "type": "git",
