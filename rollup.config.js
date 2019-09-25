@@ -7,7 +7,7 @@ export default {
   input: 'src/plugin/Component.vue',
   output: {
     format: 'esm',
-    file: 'src/plugin/dist/PincodeInput.js',
+    file: 'src/plugin/dist/PincodeInput.min.js',
   },
   external: ['vue'],
   plugins: [
