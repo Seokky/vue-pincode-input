@@ -39,14 +39,26 @@ import PincodeInput from 'vue-pincode-input';
 </div>
 ```
 
+**Attention**: you should use _'input.vue-pincode-input'_ instead _'.vue-pincode-input'_ in order to rule specificity was higher
+
 ```
 <style>
-.vue-pincode-input-wrapper {
+input.vue-pincode-input-wrapper {
   // any styles you want
 }
 
-.vue-pincode-input {
+input.vue-pincode-input {
   // any styles you want
 }
 <style>
 ```
+
+## Props
+
+- **length** (symbols count)
+  - type: Number
+  - default: 4
+
+- **autofocus** (auto focus first cell)
+  - type: Boolean
+  - default: true

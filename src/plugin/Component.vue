@@ -150,8 +150,8 @@ export default Vue.extend({
 .vue-pincode-input {
   outline: none;
   margin: 3px;
-  padding: 1rem;
-  max-width: 20px;
+  padding: 5px;
+  max-width: 40px;
   text-align: center;
   font-size: 1.1rem;
   border: none;
