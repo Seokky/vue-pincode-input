@@ -1,13 +1,17 @@
 <template>
   <div id="app">
-    <PincodeInput placeholder="123" />
+    <div class="input-wrapper">
+      <PincodeInput
+        placeholder="0"
+      />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import PincodeInput from '@/plugin/dist/PincodeInput';
-// import PincodeInput from '@/plugin/Component.vue';
+// import PincodeInput from '@/plugin/dist/PincodeInput';
+import PincodeInput from '@/plugin/Component.vue';
 
 export default Vue.extend({
   name: 'App',
@@ -20,11 +24,11 @@ export default Vue.extend({
 
 <style lang="scss">
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin-top: 100px;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+}
+
+.input-wrapper {
+  margin: 0 auto;
 }
 </style>
