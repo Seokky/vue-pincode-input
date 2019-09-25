@@ -9,6 +9,7 @@
       type="tel"
       class="vue-pincode-input"
       @focus="setFocusedLetterIndex(index)"
+      @keydown.delete="onDelete(index, $event)"
     >
   </div>
 </template>
@@ -97,6 +98,12 @@ export default Vue.extend({
 
       (this as any).$refs[refName][0].focus();
       (this as any).$refs[refName][0].select();
+    },
+    onDelete(index: number, e: Event) {
+      if (!this.letters[index].value) {
+        this.setFocusedLetterIndex(this.focusedLetterIdx - 1);
+        e.preventDefault();
+      }
     },
   },
 });
