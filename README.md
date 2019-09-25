@@ -9,6 +9,10 @@ Great pincode input component for Vue.js applications.
 - auto selecting cell content on focusing
 - call for native numeric keyboard on mobiles
 
+## Attention!
+
+Styles that component have are written just for demo. But that styles are override-friendly, so you can write any styles you want.
+
 ## Usage
 
 ```
@@ -46,7 +50,3 @@ import PincodeInput from 'vue-pincode-input';
 }
 <style>
 ```
-
-## Attention!
-
-Styles that component have are written just for demo. But that styles are override-friendly, so you can write any styles you want.
