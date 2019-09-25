@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test:unit": "vue-cli-service test:unit"
+    "test:unit": "vue-cli-service test:unit",
+    "rollup": "rollup -c --environment BUILD:production"
   },
   "dependencies": {
     "core-js": "^2.6.5",
@@ -27,6 +28,9 @@
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
     "node-sass": "^4.9.0",
+    "rollup": "^1.21.4",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-vue": "^5.0.1",
     "sass-loader": "^7.1.0",
     "stylelint": "^11.0.0",
     "stylelint-config-standard": "^19.0.0",
