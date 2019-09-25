@@ -1,6 +1,8 @@
 # vue-pincode-input
 Great pincode input component for Vue.js applications.
 
+![vue-pincode-input](https://repository-images.githubusercontent.com/210697453/85bbb480-dffa-11e9-90a3-f4114739ed91)
+
 Demo on [GitHub Pages](https://seokky.github.io/vue-pincode-input/)
 
 ## Features
