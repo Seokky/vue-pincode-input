@@ -1,0 +1,25 @@
+{
+  "name": "vue-pincode-input",
+  "version": "0.0.1",
+  "description": "Great pincode input component for Vue.js applications",
+  "main": "PincodeInput.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Seokky/vue-pin-input.git"
+  },
+  "keywords": [
+    "vue",
+    "input",
+    "pincode",
+    "pin"
+  ],
+  "author": "Seokky",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Seokky/vue-pin-input/issues"
+  },
+  "homepage": "https://github.com/Seokky/vue-pin-input#readme"
+}

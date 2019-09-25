@@ -6,7 +6,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import PincodeInput from '../dist/PincodeInput';
+import PincodeInput from '@/plugin/dist/PincodeInput';
+// import PincodeInput from '@/plugin/Component.vue';
 
 export default Vue.extend({
   name: 'App',
