@@ -67,32 +67,25 @@ export default Vue.extend({
   },
 
   mounted() {
-    this.acceptParentValue().then(() => {
-      if (this.autofocus) {
-        this.setFocusedLetterIndex(0);
-      }
-    });
+    this.acceptParentValue();
+
+    if (this.autofocus) {
+      this.focusLetterByIndex(0);
+    }
   },
 
   methods: {
-    acceptParentValue(): Promise<void> {
-      if (!this.value) {
-        return new Promise((res, rej) => res());
-      }
+    acceptParentValue() {
+      if (!this.value) return;
 
       if (this.value.length !== this.length) {
-        return new Promise((res, rej) => res());
+        return;
       }
 
-      return new Promise((resolve, reject) => {
-        const letters = this.value.split('');
-
-        for (let i = 0; i < letters.length; i += 1) {
-          this.letters[i].value = letters[i] || '';
-        }
-
-        resolve();
-      });
+      const letters = this.value.split('');
+      for (let i = 0; i < letters.length; i += 1) {
+        this.letters[i].value = letters[i] || '';
+      }
     },
     letterIsValid(letter: string): boolean {
       let letterIsValid = true;
