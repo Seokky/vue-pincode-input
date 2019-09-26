@@ -47,7 +47,7 @@ import PincodeInput from 'vue-pincode-input';
 
 ```
 <style>
-input.vue-pincode-input-wrapper {
+div.vue-pincode-input-wrapper {
   // any styles you want
 }
 
