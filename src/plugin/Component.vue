@@ -10,6 +10,7 @@
       class="vue-pincode-input"
       @focus="setFocusedLetterIndex(index)"
       @keydown.delete="onDelete(index, $event)"
+      @paste="onPaste"
     >
   </div>
 </template>
@@ -31,6 +32,8 @@ export default Vue.extend({
     letters: [] as TLetter[],
     focusedLetterIdx: -1,
     watchers: {} as any,
+    lastPasteTime: 0,
+    lastInvalidTime: 0,
   }),
 
   computed: {
@@ -75,6 +78,9 @@ export default Vue.extend({
   },
 
   methods: {
+    onPaste() {
+      this.lastPasteTime = Date.now();
+    },
     acceptParentValue() {
       if (!this.value) return;
 
@@ -98,11 +104,21 @@ export default Vue.extend({
 
       return letterIsValid;
     },
+    isItPasting() {
+      const lastPasteTime = String(this.lastPasteTime).slice(0, -2);
+      const lastInvalidTime = String(this.lastInvalidTime).slice(0, -2);
+
+      return lastPasteTime === lastInvalidTime;
+    },
     onLetterChanged(index: number, newVal: string, oldVal: string): void {
       if (!this.letterIsValid(newVal)) {
-        this.$nextTick(() => {
-          this.letters[index].value = oldVal;
-        });
+        this.lastInvalidTime = Date.now();
+
+        if (!this.isItPasting()) {
+          this.$nextTick(() => {
+            this.letters[index].value = oldVal;
+          });
+        }
       } else if (newVal.length) {
         this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
       }
