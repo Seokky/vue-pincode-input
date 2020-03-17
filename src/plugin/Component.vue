@@ -4,13 +4,12 @@
       v-for="(letter, index) in letters"
       :key="letter.key"
       :ref="`${baseRefName}${index}`"
-      v-model="letter.value"
+      v-model.trim="letter.value"
       v-bind="$attrs"
       type="tel"
       class="vue-pincode-input"
       @focus="setFocusedLetterIndex(index)"
       @keydown.delete="onDelete(index, $event)"
-      @paste="onPaste"
     >
   </div>
 </template>
@@ -32,8 +31,6 @@ export default Vue.extend({
     letters: [] as TLetter[],
     focusedLetterIdx: -1,
     watchers: {} as any,
-    lastPasteTime: 0,
-    lastInvalidTime: 0,
   }),
 
   computed: {
@@ -46,12 +43,13 @@ export default Vue.extend({
     value(val) {
       this.acceptParentValue();
     },
+
     length: {
-      handler(val) {
+      handler(pincodeLength: number) {
         this.unsetLettersWatchers();
         this.letters = [];
 
-        for (let i = 0; i < val; i += 1) {
+        for (let i = 0; i < pincodeLength; i += 1) {
           this.letters.push({ key: i, value: '' });
 
           this.watchers[`letters.${i}.value`] = this.$watch(`letters.${i}.value`, (newVal, oldVal) => {
@@ -61,9 +59,11 @@ export default Vue.extend({
       },
       immediate: true,
     },
+
     focusedLetterIdx(val) {
       this.focusLetterByIndex(val);
     },
+
     pinCodeComputed(val) {
       this.$emit('input', val);
     },
@@ -78,9 +78,6 @@ export default Vue.extend({
   },
 
   methods: {
-    onPaste() {
-      this.lastPasteTime = Date.now();
-    },
     acceptParentValue() {
       if (!this.value) return;
 
@@ -93,36 +90,31 @@ export default Vue.extend({
         this.letters[i].value = letters[i] || '';
       }
     },
-    letterIsValid(letter: string): boolean {
-      let letterIsValid = true;
 
-      if (letter.length === 1 && !letter.match(LETTER_REGEXP)) {
-        letterIsValid = false;
-      } else if (letter.length > 1) {
-        letterIsValid = false;
+    letterIsValid(letter: string): boolean {
+      if (letter === '') return true;
+
+      if (!letter) return false;
+
+      return !!letter.match(LETTER_REGEXP);
+    },
+
+    onLetterChanged(index: number, newVal: string, oldVal: string): void {
+      if (newVal.length === 0) {
+        return;
       }
 
-      return letterIsValid;
-    },
-    isItPasting() {
-      const lastPasteTime = String(this.lastPasteTime).slice(0, -2);
-      const lastInvalidTime = String(this.lastInvalidTime).slice(0, -2);
-
-      return lastPasteTime === lastInvalidTime;
-    },
-    onLetterChanged(index: number, newVal: string, oldVal: string): void {
       if (!this.letterIsValid(newVal)) {
-        this.lastInvalidTime = Date.now();
-
-        if (!this.isItPasting()) {
-          this.$nextTick(() => {
-            this.letters[index].value = oldVal;
-          });
-        }
+        this.$nextTick(() => {
+          this.letters[index].value = this.letterIsValid(newVal[index])
+            ? newVal[index]
+            : '';
+        });
       } else if (newVal.length) {
         this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
       }
     },
+
     setFocusedLetterIndex(newIndex: number): void {
       if (newIndex < 0 || newIndex >= this.length) {
         return;
@@ -130,18 +122,21 @@ export default Vue.extend({
 
       this.focusedLetterIdx = newIndex;
     },
+
     focusLetterByIndex(index: number): void {
       const refName = `${this.baseRefName}${index}`;
 
       (this as any).$refs[refName][0].focus();
       (this as any).$refs[refName][0].select();
     },
+
     onDelete(index: number, e: Event) {
       if (!this.letters[index].value) {
         this.setFocusedLetterIndex(this.focusedLetterIdx - 1);
         e.preventDefault();
       }
     },
+
     unsetLettersWatchers(): void {
       Object.keys(this.watchers).forEach((watcher) => {
         this.watchers[watcher]();

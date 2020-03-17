@@ -40,5 +40,7 @@
     "typescript": "^3.4.3",
     "vue-template-compiler": "^2.6.10"
   },
-  "eslintIgnore": ["src/plugin/dist/*.js"]
+  "eslintIgnore": [
+    "src/plugin/dist/*.js"
+  ]
 }
