@@ -66,3 +66,7 @@ input.vue-pincode-input {
 - **autofocus** (auto focus first cell)
   - type: Boolean
   - default: true
+
+- **secure** (password input type)
+  - type: Boolean
+  - default: false

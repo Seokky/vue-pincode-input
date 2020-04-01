@@ -6,8 +6,8 @@
       :ref="`${baseRefName}${index}`"
       v-model.trim="letter.value"
       v-bind="$attrs"
-      type="tel"
       class="vue-pincode-input"
+      :type="inputType"
       @focus="setFocusedLetterIndex(index)"
       @keydown.delete="onDelete(index, $event)"
     >
@@ -17,6 +17,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { TLetter } from './types/Letter';
+import { TInputType } from './types/InputType';
 import { BASE_REF_NAME, LETTER_REGEXP } from './constants';
 
 export default Vue.extend({
@@ -24,6 +25,7 @@ export default Vue.extend({
     value: { type: String, required: true },
     length: { type: Number, default: 4 },
     autofocus: { type: Boolean, default: true },
+    secure: { type: Boolean, default: false },
   },
 
   data: () => ({
@@ -35,13 +37,18 @@ export default Vue.extend({
 
   computed: {
     pinCodeComputed(): string {
-      return this.letters.reduce((pin, letter) => pin + letter.value, '');
+      return this.letters.reduce(
+        (pin, letter) => pin + letter.value, '',
+      );
+    },
+    inputType(): TInputType {
+      return this.secure ? 'password' : 'tel';
     },
   },
 
   watch: {
     value(val) {
-      this.acceptParentValue();
+      this.handleParentValue();
     },
 
     length: {
@@ -52,9 +59,14 @@ export default Vue.extend({
         for (let i = 0; i < pincodeLength; i += 1) {
           this.letters.push({ key: i, value: '' });
 
-          this.watchers[`letters.${i}.value`] = this.$watch(`letters.${i}.value`, (newVal, oldVal) => {
-            this.onLetterChanged(i, newVal, oldVal);
-          });
+          const watcher = `letters.${i}.value`;
+
+          this.watchers[watcher] = this.$watch(
+            watcher,
+            (newVal, oldVal) => {
+              this.onLetterChanged(i, newVal, oldVal);
+            },
+          );
         }
       },
       immediate: true,
@@ -70,7 +82,7 @@ export default Vue.extend({
   },
 
   mounted() {
-    this.acceptParentValue();
+    this.handleParentValue();
 
     if (this.autofocus) {
       this.focusLetterByIndex(0);
@@ -78,7 +90,7 @@ export default Vue.extend({
   },
 
   methods: {
-    acceptParentValue() {
+    handleParentValue() {
       if (!this.value) return;
 
       if (this.value.length !== this.length) {
@@ -86,12 +98,13 @@ export default Vue.extend({
       }
 
       const letters = this.value.split('');
-      for (let i = 0; i < letters.length; i += 1) {
-        this.letters[i].value = letters[i] || '';
-      }
+
+      letters.forEach((letter: string, idx: number) => {
+        this.letters[idx].value = letter || '';
+      });
     },
 
-    letterIsValid(letter: string): boolean {
+    isTheLetterValid(letter: string): boolean {
       if (letter === '') return true;
 
       if (!letter) return false;
@@ -104,9 +117,9 @@ export default Vue.extend({
         return;
       }
 
-      if (!this.letterIsValid(newVal)) {
+      if (!this.isTheLetterValid(newVal)) {
         this.$nextTick(() => {
-          this.letters[index].value = this.letterIsValid(newVal[index])
+          this.letters[index].value = this.isTheLetterValid(newVal[index])
             ? newVal[index]
             : '';
         });
