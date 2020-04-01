@@ -5,8 +5,9 @@
       :key="letter.key"
       :ref="`${baseRefName}${index}`"
       v-model.trim="letter.value"
+      :type="isPassword ? 'password' : 'tel'"
+      :autocomplete="isPassword? 'off' : 'on'"
       v-bind="$attrs"
-      type="tel"
       class="vue-pincode-input"
       @focus="setFocusedLetterIndex(index)"
       @keydown.delete="onDelete(index, $event)"
@@ -24,6 +25,7 @@ export default Vue.extend({
     value: { type: String, required: true },
     length: { type: Number, default: 4 },
     autofocus: { type: Boolean, default: true },
+    isPassword: { type: Boolean, default: false },
   },
 
   data: () => ({

@@ -4,6 +4,7 @@
       <PincodeInput
         v-model="code"
         placeholder="0"
+        :isPassword="true"
       />
     </div>
   </div>
