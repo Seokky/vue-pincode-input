@@ -79,3 +79,10 @@ input.vue-pincode-input {
 - **previewDuration** (duration of character preview)
   - type: Number
   - default: 300
+  
+## ToDo
+
+- configure husky
+- write unit tests for v0.1.0 (secure prop)
+- write unit tests for v0.2.0 (characterPreview and previewDuration props)
+- write unit tests for pasting data 
