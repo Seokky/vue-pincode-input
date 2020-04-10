@@ -12,6 +12,7 @@ Demo on [GitHub Pages](https://seokky.github.io/vue-pincode-input/)
 - auto moving focus when deleting
 - auto selecting cell content on focusing
 - call for native numeric keyboard on mobiles
+- character preview on typing (configurable duration)
 
 ## Attention!
 
@@ -70,3 +71,11 @@ input.vue-pincode-input {
 - **secure** (password input type)
   - type: Boolean
   - default: false
+
+- **characterPreview** (preview character on typing)
+  - type: Boolean
+  - default: true
+
+- **previewDuration** (duration of character preview)
+  - type: Number
+  - default: 300

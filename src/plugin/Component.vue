@@ -7,7 +7,7 @@
       v-model.trim="letter.value"
       v-bind="$attrs"
       class="vue-pincode-input"
-      :type="inputType"
+      :type="lettersInputTypes[index]"
       @focus="setFocusedLetterIndex(index)"
       @keydown.delete="onDelete(index, $event)"
     >
@@ -18,7 +18,10 @@
 import Vue from 'vue';
 import { TLetter } from './types/Letter';
 import { TInputType } from './types/InputType';
-import { BASE_REF_NAME, LETTER_REGEXP } from './constants';
+import { TLettersInputTypes } from './types/LettersInputTypes';
+import {
+  BASE_REF_NAME, LETTER_REGEXP, DEFAULT_INPUT_TYPE, SECURE_INPUT_TYPE,
+} from './constants';
 
 export default Vue.extend({
   props: {
@@ -26,6 +29,8 @@ export default Vue.extend({
     length: { type: Number, default: 4 },
     autofocus: { type: Boolean, default: true },
     secure: { type: Boolean, default: false },
+    characterPreview: { type: Boolean, default: true },
+    previewDuration: { type: Number, default: 300 },
   },
 
   data: () => ({
@@ -33,6 +38,7 @@ export default Vue.extend({
     letters: [] as TLetter[],
     focusedLetterIdx: -1,
     watchers: {} as any,
+    lettersInputTypes: {} as TLettersInputTypes,
   }),
 
   computed: {
@@ -40,9 +46,6 @@ export default Vue.extend({
       return this.letters.reduce(
         (pin, letter) => pin + letter.value, '',
       );
-    },
-    inputType(): TInputType {
-      return this.secure ? 'password' : 'tel';
     },
   },
 
@@ -52,24 +55,10 @@ export default Vue.extend({
     },
 
     length: {
-      handler(pincodeLength: number) {
-        this.unsetLettersWatchers();
-        this.letters = [];
-
-        for (let i = 0; i < pincodeLength; i += 1) {
-          this.letters.push({ key: i, value: '' });
-
-          const watcher = `letters.${i}.value`;
-
-          this.watchers[watcher] = this.$watch(
-            watcher,
-            (newVal, oldVal) => {
-              this.onLetterChanged(i, newVal, oldVal);
-            },
-          );
-        }
-      },
       immediate: true,
+      handler() {
+        this.init();
+      },
     },
 
     focusedLetterIdx(val) {
@@ -82,6 +71,7 @@ export default Vue.extend({
   },
 
   mounted() {
+    this.init();
     this.handleParentValue();
 
     if (this.autofocus) {
@@ -90,6 +80,19 @@ export default Vue.extend({
   },
 
   methods: {
+    init() {
+      this.unwatchLetters();
+      this.resetLetters();
+
+      for (let i = 0; i < this.length; i += 1) {
+        this.setupLetterObject(i);
+        this.setupLetterWatcher(i);
+        this.setLetterInputType(
+          i, this.getRelevantInputTypeForLetter(),
+        );
+      }
+    },
+
     handleParentValue() {
       if (!this.value) return;
 
@@ -124,8 +127,38 @@ export default Vue.extend({
             : '';
         });
       } else if (newVal.length) {
+        if (this.secure && this.characterPreview) {
+          this.setLetterInputTypeWithDelay(
+            index,
+            SECURE_INPUT_TYPE,
+            this.previewDuration,
+          );
+        }
         this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
       }
+    },
+
+    getRelevantInputTypeForLetter(): TInputType {
+      return this.secure && !this.characterPreview
+        ? SECURE_INPUT_TYPE
+        : DEFAULT_INPUT_TYPE;
+    },
+
+    setLetterInputType(index: number, inputType: TInputType) {
+      if (index in this.lettersInputTypes) {
+        this.lettersInputTypes[index] = inputType;
+        return;
+      }
+
+      this.$set(this.lettersInputTypes, index, inputType);
+    },
+
+    setLetterInputTypeWithDelay(index: number, value: TInputType, delay: number) {
+      /* "bind" used to not to create arrow function every time */
+      setTimeout(
+        this.setLetterInputType.bind(this, index, value),
+        delay,
+      );
     },
 
     setFocusedLetterIndex(newIndex: number): void {
@@ -146,14 +179,33 @@ export default Vue.extend({
     onDelete(index: number, e: Event) {
       if (!this.letters[index].value) {
         this.setFocusedLetterIndex(this.focusedLetterIdx - 1);
-        e.preventDefault();
+        e.preventDefault(); // to not delete letter in the field after focus changed
       }
     },
 
-    unsetLettersWatchers(): void {
-      Object.keys(this.watchers).forEach((watcher) => {
-        this.watchers[watcher]();
+    setupLetterObject(index: number) {
+      this.letters.push({ key: index, value: '' });
+    },
+
+    setupLetterWatcher(index: number) {
+      const watchingProperty = `letters.${index}.value`;
+
+      this.watchers[watchingProperty] = this.$watch(
+        watchingProperty,
+        (newVal, oldVal) => {
+          this.onLetterChanged(index, newVal, oldVal);
+        },
+      );
+    },
+
+    unwatchLetters(): void {
+      Object.keys(this.watchers).forEach((watcherName) => {
+        this.watchers[watcherName]();
       });
+    },
+
+    resetLetters() {
+      this.letters = [];
     },
   },
 });

@@ -1,6 +1,6 @@
 {
   "name": "vue-pincode-input",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "Great pincode input component for Vue.js applications.",
   "main": "PincodeInput.min.js",
@@ -16,9 +16,12 @@
   },
   "keywords": [
     "vue",
+    "vuejs",
     "input",
     "pincode",
-    "pin"
+    "pin",
+    "secure",
+    "safe"
   ],
   "author": "Seokky",
   "license": "MIT",
