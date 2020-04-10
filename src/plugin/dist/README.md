@@ -50,11 +50,11 @@ import PincodeInput from 'vue-pincode-input';
 ```
 <style>
 div.vue-pincode-input-wrapper {
-  // any styles you want
+  // any styles you want for wrapper
 }
 
 input.vue-pincode-input {
-  // any styles you want
+  // any styles you want for each cell
 }
 <style>
 ```
