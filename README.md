@@ -12,6 +12,7 @@ Demo on [GitHub Pages](https://seokky.github.io/vue-pincode-input/)
 - auto moving focus when deleting
 - auto selecting cell content on focusing
 - call for native numeric keyboard on mobiles
+- optional secure mode (password input type)
 - character preview on typing (configurable duration)
 
 ## Attention!
