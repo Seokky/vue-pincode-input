@@ -18,7 +18,7 @@
 import Vue from 'vue';
 import { TLetter } from './types/Letter';
 import { TInputType } from './types/InputType';
-import { BASE_REF_NAME, LETTER_REGEXP } from './constants';
+import { BASE_REF_NAME, REGEX_RULE } from './constants';
 
 export default Vue.extend({
   props: {
@@ -26,6 +26,7 @@ export default Vue.extend({
     length: { type: Number, default: 4 },
     autofocus: { type: Boolean, default: true },
     secure: { type: Boolean, default: false },
+    regex: { type: String, default: 'number' },
   },
 
   data: () => ({
@@ -43,6 +44,13 @@ export default Vue.extend({
     },
     inputType(): TInputType {
       return this.secure ? 'password' : 'tel';
+    },
+    usedRegex(): RegExp {
+      if (this.regex.toLowerCase() === 'number') return REGEX_RULE.NUMBER_REGEXP;
+      if (this.regex.toLowerCase() === 'letter') return REGEX_RULE.LETTER_REGEXP;
+      if (this.regex.toLowerCase() === 'special_chars') return REGEX_RULE.SPECIAL_CHARS_REGEXP;
+      if (this.regex.startsWith('/') && this.regex.endsWith('/')) return new RegExp(this.regex.replace(/^\//, '').replace(/\/$/, ''));
+      return new RegExp(`${this.regex}`);
     },
   },
 
@@ -109,7 +117,7 @@ export default Vue.extend({
 
       if (!letter) return false;
 
-      return !!letter.match(LETTER_REGEXP);
+      return !!letter.match(this.usedRegex);
     },
 
     onLetterChanged(index: number, newVal: string, oldVal: string): void {
