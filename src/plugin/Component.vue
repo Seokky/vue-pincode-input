@@ -16,22 +16,20 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import props from './props';
+
 import { TLetter } from './types/Letter';
 import { TInputType } from './types/InputType';
 import { TLettersInputTypes } from './types/LettersInputTypes';
+
 import {
-  BASE_REF_NAME, LETTER_REGEXP, DEFAULT_INPUT_TYPE, SECURE_INPUT_TYPE,
+  BASE_REF_NAME, LETTER_REGEXP,
+  DEFAULT_INPUT_TYPE,
+  SECURE_INPUT_TYPE,
 } from './constants';
 
 export default Vue.extend({
-  props: {
-    value: { type: String, required: true },
-    length: { type: Number, default: 4 },
-    autofocus: { type: Boolean, default: true },
-    secure: { type: Boolean, default: false },
-    characterPreview: { type: Boolean, default: true },
-    previewDuration: { type: Number, default: 300 },
-  },
+  props,
 
   data: () => ({
     baseRefName: BASE_REF_NAME,
@@ -50,8 +48,8 @@ export default Vue.extend({
   },
 
   watch: {
-    value(val) {
-      this.handleParentValue();
+    value() {
+      this.setParentValue();
     },
 
     length: {
@@ -72,7 +70,7 @@ export default Vue.extend({
 
   mounted() {
     this.init();
-    this.handleParentValue();
+    this.setParentValue();
 
     if (this.autofocus) {
       this.focusLetterByIndex(0);
@@ -93,24 +91,30 @@ export default Vue.extend({
       }
     },
 
-    handleParentValue() {
-      if (!this.value) return;
+    setParentValue() {
+      if (!this.value) {
+        return;
+      }
 
       if (this.value.length !== this.length) {
         return;
       }
 
-      const letters = this.value.split('');
-
-      letters.forEach((letter: string, idx: number) => {
-        this.letters[idx].value = letter || '';
-      });
+      this.value
+        .split('') // getting letters
+        .forEach((letter: string, idx: number) => {
+          this.letters[idx].value = letter || '';
+        });
     },
 
     isTheLetterValid(letter: string): boolean {
-      if (letter === '') return true;
+      if (letter === '') {
+        return true;
+      }
 
-      if (!letter) return false;
+      if (!letter) {
+        return false;
+      }
 
       return !!letter.match(LETTER_REGEXP);
     },
@@ -134,6 +138,7 @@ export default Vue.extend({
             this.previewDuration,
           );
         }
+
         this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
       }
     },
