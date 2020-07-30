@@ -48,8 +48,15 @@ export default Vue.extend({
   },
 
   watch: {
-    value() {
-      this.setParentValue();
+    value(value: any) {
+      const valueNormalized = value || '';
+      if (!valueNormalized) {
+        this.init();
+        this.setParentValue();
+        this.focusLetterByIndex(0);
+      } else {
+        this.setParentValue();
+      }
     },
 
     length: {
