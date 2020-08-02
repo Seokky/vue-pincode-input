@@ -17,11 +17,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import props from './props';
-
 import { Letter } from './types/Letter';
 import { InputType } from './types/InputType';
 import { LettersInputTypes } from './types/LettersInputTypes';
-
 import {
   BASE_REF_NAME,
   LETTER_REGEXP,
@@ -42,9 +40,7 @@ export default Vue.extend({
 
   computed: {
     pinCodeComputed(): string {
-      return this.letters.reduce(
-        (pin, letter) => pin + letter.value, '',
-      );
+      return this.letters.reduce((pin, letter) => pin + letter.value, '');
     },
   },
 
@@ -53,7 +49,6 @@ export default Vue.extend({
       const valueNormalized = value || '';
       if (!valueNormalized) {
         this.init();
-        this.setParentValue();
         this.focusLetterByIndex(0);
       } else {
         this.setParentValue();
@@ -61,7 +56,6 @@ export default Vue.extend({
     },
 
     length: {
-      immediate: true,
       handler() {
         this.init();
       },
@@ -80,9 +74,11 @@ export default Vue.extend({
     this.init();
     this.setParentValue();
 
-    if (this.autofocus) {
-      this.focusLetterByIndex(0);
-    }
+    this.$nextTick(() => {
+      if (this.autofocus) {
+        this.focusLetterByIndex(0);
+      }
+    });
   },
 
   methods: {
@@ -127,7 +123,7 @@ export default Vue.extend({
       this.resetLetters();
 
       for (let i = 0; i < this.length; i += 1) {
-        this.setupLetterObject(i);
+        this.letters.push({ key: i, value: '' });
         this.setupLetterWatcher(i);
         this.setLetterInputType(
           i, this.getRelevantInputType(),
@@ -188,10 +184,6 @@ export default Vue.extend({
 
       (this as any).$refs[letterRef][0].focus();
       (this as any).$refs[letterRef][0].select();
-    },
-
-    setupLetterObject(key: number) {
-      this.letters.push({ key, value: '' });
     },
 
     setupLetterWatcher(index: number) {
