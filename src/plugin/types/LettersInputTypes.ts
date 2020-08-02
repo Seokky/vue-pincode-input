@@ -1,5 +1,5 @@
-import { TInputType } from './InputType';
+import { InputType } from './InputType';
 
-export type TLettersInputTypes = {
-  [letterIdx: number]: TInputType;
+export type LettersInputTypes = {
+  [letterIdx: number]: InputType;
 }

@@ -1,4 +1,4 @@
-export type TLetter = {
+export type Letter = {
   key: number,
   value: string,
 };

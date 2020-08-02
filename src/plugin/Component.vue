@@ -9,7 +9,7 @@
       class="vue-pincode-input"
       :type="lettersInputTypes[index]"
       @focus="setFocusedLetterIndex(index)"
-      @keydown.delete="onDelete(index, $event)"
+      @keydown.delete="onLetterErase(index, $event)"
     >
   </div>
 </template>
@@ -18,12 +18,13 @@
 import Vue from 'vue';
 import props from './props';
 
-import { TLetter } from './types/Letter';
-import { TInputType } from './types/InputType';
-import { TLettersInputTypes } from './types/LettersInputTypes';
+import { Letter } from './types/Letter';
+import { InputType } from './types/InputType';
+import { LettersInputTypes } from './types/LettersInputTypes';
 
 import {
-  BASE_REF_NAME, LETTER_REGEXP,
+  BASE_REF_NAME,
+  LETTER_REGEXP,
   DEFAULT_INPUT_TYPE,
   SECURE_INPUT_TYPE,
 } from './constants';
@@ -33,10 +34,10 @@ export default Vue.extend({
 
   data: () => ({
     baseRefName: BASE_REF_NAME,
-    letters: [] as TLetter[],
+    letters: [] as Letter[],
     focusedLetterIdx: -1,
-    watchers: {} as any,
-    lettersInputTypes: {} as TLettersInputTypes,
+    watchers: {} as Record<string, Function>,
+    lettersInputTypes: {} as LettersInputTypes,
   }),
 
   computed: {
@@ -85,6 +86,42 @@ export default Vue.extend({
   },
 
   methods: {
+    onLetterChanged(index: number, newVal: string, oldVal: string): void {
+      if (newVal.length === 0) {
+        return;
+      }
+
+      if (!this.isTheLetterValid(newVal)) {
+        this.letters[index].value = '';
+      } else if (newVal.length) {
+        if (this.secure && this.characterPreview) {
+          /*
+            Setting 'password' input type after delay to make character preview if it's enabled.
+            If character preview disabled, secure input type already settled before.
+          */
+          setTimeout(
+            this.setLetterInputType,
+            this.previewDuration,
+            index,
+            SECURE_INPUT_TYPE,
+          );
+        }
+
+        this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
+      }
+    },
+
+    onLetterErase(index: number, e: Event) {
+      const isThisCellFilled = this.letters[index].value.length;
+
+      if (!isThisCellFilled) {
+        // move focus to the left
+        this.setFocusedLetterIndex(this.focusedLetterIdx - 1);
+        // prevent to delete letter in the field after focus changed
+        e.preventDefault();
+      }
+    },
+
     init() {
       this.unwatchLetters();
       this.resetLetters();
@@ -93,7 +130,7 @@ export default Vue.extend({
         this.setupLetterObject(i);
         this.setupLetterWatcher(i);
         this.setLetterInputType(
-          i, this.getRelevantInputTypeForLetter(),
+          i, this.getRelevantInputType(),
         );
       }
     },
@@ -108,7 +145,7 @@ export default Vue.extend({
       }
 
       this.value
-        .split('') // getting letters
+        .split('')
         .forEach((letter: string, idx: number) => {
           this.letters[idx].value = letter || '';
         });
@@ -126,77 +163,35 @@ export default Vue.extend({
       return !!letter.match(LETTER_REGEXP);
     },
 
-    onLetterChanged(index: number, newVal: string, oldVal: string): void {
-      if (newVal.length === 0) {
-        return;
-      }
-
-      if (!this.isTheLetterValid(newVal)) {
-        this.$nextTick(() => {
-          this.letters[index].value = this.isTheLetterValid(newVal[index])
-            ? newVal[index]
-            : '';
-        });
-      } else if (newVal.length) {
-        if (this.secure && this.characterPreview) {
-          this.setLetterInputTypeWithDelay(
-            index,
-            SECURE_INPUT_TYPE,
-            this.previewDuration,
-          );
-        }
-
-        this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
-      }
-    },
-
-    getRelevantInputTypeForLetter(): TInputType {
+    getRelevantInputType(): InputType {
+      /*
+        if character preview disabled, we are setting secure input type immediately,
+        else we are setting it to the 'tel' until the letter will be entered
+      */
       return this.secure && !this.characterPreview
         ? SECURE_INPUT_TYPE
         : DEFAULT_INPUT_TYPE;
     },
 
-    setLetterInputType(index: number, inputType: TInputType) {
-      if (index in this.lettersInputTypes) {
-        this.lettersInputTypes[index] = inputType;
-        return;
-      }
-
+    setLetterInputType(index: number, inputType: InputType) {
       this.$set(this.lettersInputTypes, index, inputType);
     },
 
-    setLetterInputTypeWithDelay(index: number, value: TInputType, delay: number) {
-      /* "bind" used to not to create arrow function every time */
-      setTimeout(
-        this.setLetterInputType.bind(this, index, value),
-        delay,
-      );
-    },
-
     setFocusedLetterIndex(newIndex: number): void {
-      if (newIndex < 0 || newIndex >= this.length) {
-        return;
+      if (newIndex >= 0 && newIndex < this.length) {
+        this.focusedLetterIdx = newIndex;
       }
-
-      this.focusedLetterIdx = newIndex;
     },
 
     focusLetterByIndex(index: number): void {
-      const refName = `${this.baseRefName}${index}`;
+      const letterRef = `${this.baseRefName}${index}`;
 
-      (this as any).$refs[refName][0].focus();
-      (this as any).$refs[refName][0].select();
+      (this as any).$refs[letterRef][0].focus();
+      (this as any).$refs[letterRef][0].select();
     },
 
-    onDelete(index: number, e: Event) {
-      if (!this.letters[index].value) {
-        this.setFocusedLetterIndex(this.focusedLetterIdx - 1);
-        e.preventDefault(); // to not delete letter in the field after focus changed
-      }
-    },
-
-    setupLetterObject(index: number) {
-      this.letters.push({ key: index, value: '' });
+    setupLetterObject(key: number) {
+      this.letters.push({ key, value: '' });
     },
 
     setupLetterWatcher(index: number) {
