@@ -80,8 +80,15 @@ describe('Component.vue', () => {
       const refs = Object.keys(wrapper.vm.$refs);
       refs.forEach((ref: string) => {
         const cellElement = (wrapper.vm.$refs[ref] as HTMLInputElement[])[0];
-        expect(cellElement.type).toEqual(SECURE_INPUT_TYPE);
+        expect(cellElement.type).toBe(SECURE_INPUT_TYPE);
       });
     });
+  });
+
+  it('correctly sets parent value', () => {
+    const propsData = { value: '1234' };
+    const wrapper = mount(Component, { propsData });
+
+    expect((wrapper as any).vm.pinCodeComputed).toBe('1234');
   });
 });

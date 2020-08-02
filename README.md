@@ -85,4 +85,3 @@ input.vue-pincode-input {
 
 - configure husky
 - write unit tests for v0.2.0 (characterPreview and previewDuration props)
-- write unit tests for pasting data
