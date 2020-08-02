@@ -1,95 +1,87 @@
 import { mount } from '@vue/test-utils';
 import Component from '@/plugin//Component.vue';
+import { SECURE_INPUT_TYPE } from '@/plugin/constants';
 
 const DEFAULT_LENGTH = 4;
-const COMMON_PARAMS = {
-  sync: false,
-};
 
 describe('Component.vue', () => {
   it('correctly creates letters with "length" prop', () => {
-    const props = {
+    const propsData = {
       length: 5,
       value: '',
     };
-    const wrapper = mount(Component, {
-      ...COMMON_PARAMS,
-      propsData: { ...props },
-    });
+    const wrapper = mount(Component, { propsData });
     const lettersCount = wrapper.vm.$data.letters.length;
 
-    expect(lettersCount).toEqual(props.length);
+    expect(lettersCount).toEqual(propsData.length);
   });
 
   it('correctly creates letters without "length" prop', () => {
-    const props = {
-      length: undefined,
-      value: '',
-    };
-    const wrapper = mount(Component, {
-      ...COMMON_PARAMS,
-      propsData: { ...props },
-    });
+    const propsData = { value: '' };
+    const wrapper = mount(Component, { propsData });
     const lettersCount = wrapper.vm.$data.letters.length;
 
     expect(lettersCount).toEqual(DEFAULT_LENGTH);
   });
 
   it('correctly creates watchers with "length" prop', () => {
-    const props = {
+    const propsData = {
       length: 5,
       value: '',
     };
-    const wrapper = mount(Component, {
-      ...COMMON_PARAMS,
-      propsData: { ...props },
-    });
+    const wrapper = mount(Component, { propsData });
     const watchersCount = Object.keys(wrapper.vm.$data.watchers).length;
 
-    expect(watchersCount).toEqual(props.length);
+    expect(watchersCount).toEqual(propsData.length);
   });
 
   it('correctly creates watchers without "length" prop', () => {
-    const props = {
-      length: undefined,
-      value: '',
-    };
-    const wrapper = mount(Component, {
-      ...COMMON_PARAMS,
-      propsData: { ...props },
-    });
+    const propsData = { value: '' };
+    const wrapper = mount(Component, { propsData });
     const watchersCount = Object.keys(wrapper.vm.$data.watchers).length;
 
     expect(watchersCount).toEqual(DEFAULT_LENGTH);
   });
 
   it('focus first letter when autofocus enabled', () => {
-    const props = {
-      length: undefined,
+    const propsData = {
       value: '',
       autofocus: true,
     };
-    const wrapper = mount(Component, {
-      ...COMMON_PARAMS,
-      propsData: { ...props },
-    });
-    const { focusedLetterIdx } = (wrapper as any).vm;
+    const wrapper = mount(Component, { propsData });
 
-    expect(focusedLetterIdx).toEqual(0);
+    wrapper.vm.$nextTick(() => {
+      const { focusedLetterIdx } = wrapper.vm.$data;
+
+      expect(focusedLetterIdx).toEqual(0);
+    });
   });
 
   it('do not focus first letter when autofocus disabled', () => {
-    const props = {
-      length: undefined,
+    const propsData = {
       value: '',
       autofocus: false,
     };
-    const wrapper = mount(Component, {
-      ...COMMON_PARAMS,
-      propsData: { ...props },
-    });
-    const { focusedLetterIdx } = (wrapper as any).vm;
+    const wrapper = mount(Component, { propsData });
+    const { focusedLetterIdx } = wrapper.vm.$data;
 
     expect(focusedLetterIdx).toEqual(-1);
+  });
+
+  it('correctly sets secure input type', () => {
+    const propsData = {
+      value: '',
+      secure: true,
+      characterPreview: false,
+    };
+    const wrapper = mount(Component, { propsData });
+
+    wrapper.vm.$nextTick(() => {
+      const refs = Object.keys(wrapper.vm.$refs);
+      refs.forEach((ref: string) => {
+        const cellElement = (wrapper.vm.$refs[ref] as HTMLInputElement[])[0];
+        expect(cellElement.type).toEqual(SECURE_INPUT_TYPE);
+      });
+    });
   });
 });
