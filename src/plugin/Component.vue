@@ -131,13 +131,9 @@ export default Vue.extend({
     },
 
     setParentValue() {
-      if (!this.value) {
-        return;
-      }
+      if (!this.value) return;
 
-      if (this.value.length !== this.length) {
-        return;
-      }
+      if (this.value.length !== this.length) return;
 
       this.value
         .split('')
@@ -147,12 +143,8 @@ export default Vue.extend({
     },
 
     isTheLetterValid(letter: string): boolean {
-      if (letter === '') {
-        return true;
-      }
-
       if (!letter) {
-        return false;
+        return letter === '';
       }
 
       return !!letter.match(LETTER_REGEXP);
