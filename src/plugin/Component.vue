@@ -83,27 +83,26 @@ export default Vue.extend({
 
   methods: {
     onLetterChanged(index: number, newVal: string, oldVal: string): void {
-      if (newVal.length === 0) {
-        return;
-      }
+      if (newVal.length === 0) return;
 
       if (!this.isTheLetterValid(newVal)) {
         this.letters[index].value = '';
-      } else if (newVal.length) {
-        if (this.secure && this.characterPreview) {
-          /*
-            Setting 'password' input type after delay to make character preview if it's enabled.
-            If character preview disabled, secure input type already settled before.
-          */
-          setTimeout(
-            this.setLetterInputType,
-            this.previewDuration,
-            index,
-            SECURE_INPUT_TYPE,
-          );
-        }
+        return;
+      }
 
-        this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
+      this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
+
+      /*
+        Setting 'password' input type after delay to make character preview if it's enabled.
+        If character preview disabled, secure input type already settled before.
+      */
+      if (this.secure && this.characterPreview) {
+        setTimeout(
+          this.setLetterInputType,
+          this.previewDuration,
+          index,
+          SECURE_INPUT_TYPE,
+        );
       }
     },
 
