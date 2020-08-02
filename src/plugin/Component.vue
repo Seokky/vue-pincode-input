@@ -46,18 +46,16 @@ export default Vue.extend({
 
   watch: {
     value(value: any) {
-      const valueNormalized = value || '';
-      if (!valueNormalized) {
-        this.init();
-        this.focusLetterByIndex(0);
-      } else {
+      if (value) {
         this.setParentValue();
+      } else {
+        this.reset();
       }
     },
 
     length: {
       handler() {
-        this.init();
+        this.reset();
       },
     },
 
@@ -118,22 +116,25 @@ export default Vue.extend({
     },
 
     init() {
-      this.unwatchLetters();
-      this.resetLetters();
-
-      for (let i = 0; i < this.length; i += 1) {
-        this.letters.push({ key: i, value: '' });
-        this.setupLetterWatcher(i);
-        this.setLetterInputType(
-          i, this.getRelevantInputType(),
-        );
+      const inputType = this.getRelevantInputType();
+      for (let key = 0; key < this.length; key += 1) {
+        this.$set(this.letters, key, { key, value: '' });
+        this.setupLetterWatcher(key);
+        this.setLetterInputType(key, inputType);
       }
     },
 
-    setParentValue() {
-      if (!this.value) return;
+    reset() {
+      this.unwatchLetters();
+      this.init();
+      this.focusLetterByIndex(0);
+    },
 
-      if (this.value.length !== this.length) return;
+    setParentValue() {
+      if (this.value.length > this.length) {
+        this.$emit('input', this.pinCodeComputed);
+        throw new Error('Pincode: The length of the parent value exceeds the maximum length');
+      }
 
       this.value
         .split('')
@@ -189,13 +190,8 @@ export default Vue.extend({
     },
 
     unwatchLetters(): void {
-      Object.keys(this.watchers).forEach((watcherName) => {
-        this.watchers[watcherName]();
-      });
-    },
-
-    resetLetters() {
-      this.letters = [];
+      const watchers = Object.keys(this.watchers);
+      watchers.forEach(watcherName => this.watchers[watcherName]());
     },
   },
 });
