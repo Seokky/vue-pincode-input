@@ -80,6 +80,34 @@ export default Vue.extend({
   },
 
   methods: {
+    init() {
+      const inputType = this.getRelevantInputType();
+      for (let key = 0; key < this.length; key += 1) {
+        this.$set(this.letters, key, { key, value: '' });
+        this.setupLetterWatcher(key);
+        this.setLetterInputType(key, inputType);
+      }
+    },
+
+    reset() {
+      this.unwatchLetters();
+      this.init();
+      this.focusLetterByIndex(0);
+    },
+
+    setParentValue() {
+      if (this.value.length > this.length) {
+        this.$emit('input', this.pinCodeComputed);
+        throw new Error('Pincode: The length of the parent value exceeds the maximum length');
+      }
+
+      this.value
+        .split('')
+        .forEach((letter: string, idx: number) => {
+          this.letters[idx].value = letter || '';
+        });
+    },
+
     onLetterChanged(index: number, newVal: string, oldVal: string): void {
       if (newVal.length === 0) return;
 
@@ -113,34 +141,6 @@ export default Vue.extend({
         // prevent to delete letter in the field after focus changed
         e.preventDefault();
       }
-    },
-
-    init() {
-      const inputType = this.getRelevantInputType();
-      for (let key = 0; key < this.length; key += 1) {
-        this.$set(this.letters, key, { key, value: '' });
-        this.setupLetterWatcher(key);
-        this.setLetterInputType(key, inputType);
-      }
-    },
-
-    reset() {
-      this.unwatchLetters();
-      this.init();
-      this.focusLetterByIndex(0);
-    },
-
-    setParentValue() {
-      if (this.value.length > this.length) {
-        this.$emit('input', this.pinCodeComputed);
-        throw new Error('Pincode: The length of the parent value exceeds the maximum length');
-      }
-
-      this.value
-        .split('')
-        .forEach((letter: string, idx: number) => {
-          this.letters[idx].value = letter || '';
-        });
     },
 
     isTheLetterValid(letter: string): boolean {
