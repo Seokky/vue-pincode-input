@@ -19,7 +19,7 @@ export default {
     type: Boolean,
     default: true,
   },
-  previewDuration: {
+  charPreviewDuration: {
     type: Number,
     default: 300,
   },

@@ -8,7 +8,7 @@
       v-bind="$attrs"
       class="vue-pincode-input"
       :type="lettersInputTypes[index]"
-      @focus="setFocusedLetterIndex(index)"
+      @focus="focusedLetterIdx = index"
       @keydown.delete="onLetterErase(index, $event)"
     >
   </div>
@@ -32,8 +32,8 @@ export default Vue.extend({
 
   data: () => ({
     baseRefName: BASE_REF_NAME,
+    focusedLetterIdx: 0,
     letters: [] as Letter[],
-    focusedLetterIdx: -1,
     watchers: {} as Record<string, Function>,
     lettersInputTypes: {} as LettersInputTypes,
   }),
@@ -47,58 +47,65 @@ export default Vue.extend({
   watch: {
     value(value: any) {
       if (value) {
-        this.setParentValue();
+        this.onParentValueUpdated();
       } else {
         this.reset();
       }
     },
 
-    length: {
-      handler() {
-        this.reset();
-      },
+    length() {
+      this.reset();
     },
 
-    focusedLetterIdx(val) {
-      this.focusLetterByIndex(val);
-    },
-
-    pinCodeComputed(val) {
+    pinCodeComputed(val: string) {
       this.$emit('input', val);
     },
   },
 
   mounted() {
     this.init();
-    this.setParentValue();
+    this.onParentValueUpdated();
 
-    this.$nextTick(() => {
-      if (this.autofocus) {
-        this.focusLetterByIndex(0);
-      }
-    });
+    if (this.autofocus) {
+      this.$nextTick(this.focusLetterByIndex.bind(this, 0));
+    }
   },
 
   methods: {
+    /* init stuff */
+
     init() {
       const inputType = this.getRelevantInputType();
       for (let key = 0; key < this.length; key += 1) {
-        this.$set(this.letters, key, { key, value: '' });
-        this.setupLetterWatcher(key);
+        this.setLetterObject(key);
         this.setLetterInputType(key, inputType);
+        this.setLetterWatcher(key);
       }
     },
 
-    reset() {
-      this.unwatchLetters();
-      this.init();
-      this.focusLetterByIndex(0);
+    setLetterObject(key: number) {
+      this.$set(this.letters, key, { key, value: '' });
     },
 
-    setParentValue() {
-      if (this.value.length > this.length) {
+    setLetterInputType(index: number, inputType: InputType) {
+      this.$set(this.lettersInputTypes, index, inputType);
+    },
+
+    setLetterWatcher(index: number) {
+      const watchingProperty = `letters.${index}.value`;
+
+      this.watchers[watchingProperty] = this.$watch(
+        watchingProperty,
+        (newVal, oldVal) => this.onLetterChanged(index, newVal, oldVal),
+      );
+    },
+
+    /* handlers */
+
+    onParentValueUpdated() {
+      if (this.value.length !== this.length) {
         this.$emit('input', this.pinCodeComputed);
-        throw new Error('Pincode: The length of the parent value exceeds the maximum length');
+        return;
       }
 
       this.value
@@ -109,23 +116,18 @@ export default Vue.extend({
     },
 
     onLetterChanged(index: number, newVal: string, oldVal: string): void {
-      if (newVal.length === 0) return;
-
-      if (!this.isTheLetterValid(newVal)) {
+      if (!newVal.length || !this.isTheLetterValid(newVal)) {
         this.letters[index].value = '';
         return;
       }
 
-      this.setFocusedLetterIndex(this.focusedLetterIdx + 1);
+      this.focusNextLetter();
 
-      /*
-        Setting 'password' input type after delay to make character preview if it's enabled.
-        If character preview disabled, secure input type already settled before.
-      */
+      /* performing character preview if it's enabled */
       if (this.secure && this.characterPreview) {
         setTimeout(
           this.setLetterInputType,
-          this.previewDuration,
+          this.charPreviewDuration,
           index,
           SECURE_INPUT_TYPE,
         );
@@ -136,12 +138,25 @@ export default Vue.extend({
       const isThisCellFilled = this.letters[index].value.length;
 
       if (!isThisCellFilled) {
-        // move focus to the left
-        this.setFocusedLetterIndex(this.focusedLetterIdx - 1);
-        // prevent to delete letter in the field after focus changed
+        this.focusPreviousLetter();
         e.preventDefault();
       }
     },
+
+    /* reset stuff */
+
+    reset() {
+      this.unwatchLetters();
+      this.init();
+      this.focusLetterByIndex(0);
+    },
+
+    unwatchLetters(): void {
+      const watchers = Object.keys(this.watchers);
+      watchers.forEach(watcherName => this.watchers[watcherName]());
+    },
+
+    /* helpers */
 
     isTheLetterValid(letter: string): boolean {
       if (!letter) {
@@ -152,23 +167,21 @@ export default Vue.extend({
     },
 
     getRelevantInputType(): InputType {
-      /*
-        if character preview disabled, we are setting secure input type immediately,
-        else we are setting it to the 'tel' until the letter will be entered
-      */
       return this.secure && !this.characterPreview
         ? SECURE_INPUT_TYPE
         : DEFAULT_INPUT_TYPE;
     },
 
-    setLetterInputType(index: number, inputType: InputType) {
-      this.$set(this.lettersInputTypes, index, inputType);
+    focusPreviousLetter() {
+      if (!this.focusedLetterIdx) return;
+
+      this.focusLetterByIndex(this.focusedLetterIdx - 1);
     },
 
-    setFocusedLetterIndex(newIndex: number): void {
-      if (newIndex >= 0 && newIndex < this.length) {
-        this.focusedLetterIdx = newIndex;
-      }
+    focusNextLetter() {
+      if (this.focusedLetterIdx === this.length - 1) return;
+
+      this.focusLetterByIndex(this.focusedLetterIdx + 1);
     },
 
     focusLetterByIndex(index: number): void {
@@ -176,28 +189,14 @@ export default Vue.extend({
 
       (this as any).$refs[letterRef][0].focus();
       (this as any).$refs[letterRef][0].select();
-    },
 
-    setupLetterWatcher(index: number) {
-      const watchingProperty = `letters.${index}.value`;
-
-      this.watchers[watchingProperty] = this.$watch(
-        watchingProperty,
-        (newVal, oldVal) => {
-          this.onLetterChanged(index, newVal, oldVal);
-        },
-      );
-    },
-
-    unwatchLetters(): void {
-      const watchers = Object.keys(this.watchers);
-      watchers.forEach(watcherName => this.watchers[watcherName]());
+      this.focusedLetterIdx = index;
     },
   },
 });
 </script>
 
-<style lang="scss">
+<style>
 .vue-pincode-input-wrapper {
   display: inline-flex;
 }
@@ -212,9 +211,9 @@ export default Vue.extend({
   border: none;
   border-radius: 3px;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
 
-  &:focus {
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
-  }
+.vue-pincode-input:focus {
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 </style>
