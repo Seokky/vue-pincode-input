@@ -43,34 +43,33 @@ describe('Component.vue', () => {
     expect(watchersCount).toEqual(DEFAULT_LENGTH);
   });
 
-  it('focus first letter when autofocus enabled', () => {
+  it('focus first letter when autofocus enabled', async () => {
     const propsData = {
       value: '',
       autofocus: true,
     };
     const { vm } = mount(Component, { propsData });
 
-    vm.$nextTick(() => {
-      const { focusedLetterIdx } = vm.$data;
+    await vm.$nextTick();
 
-      expect(focusedLetterIdx).toEqual(0);
-    });
+    const { focusedLetterIdx } = vm.$data;
+    expect(focusedLetterIdx).toEqual(0);
   });
 
-  it('do not focus first letter when autofocus disabled', () => {
+  it('do not focus first letter when autofocus disabled', async () => {
     const propsData = {
       value: '',
       autofocus: false,
     };
     const { vm } = mount(Component, { propsData });
 
-    vm.$nextTick(() => {
-      const cell = (vm.$refs['vue-pincode-input0'] as HTMLInputElement[])[0];
-      expect(document.activeElement === cell).toBe(false);
-    });
+    await vm.$nextTick();
+
+    const cell = (vm.$refs['vue-pincode-input0'] as HTMLInputElement[])[0];
+    expect(document.activeElement === cell).toBe(false);
   });
 
-  it('correctly sets secure input type', () => {
+  it('correctly sets secure input type', async () => {
     const propsData = {
       value: '',
       secure: true,
@@ -78,12 +77,12 @@ describe('Component.vue', () => {
     };
     const { vm } = mount(Component, { propsData });
 
-    vm.$nextTick(() => {
-      const refs = Object.keys(vm.$refs);
-      refs.forEach((ref: string) => {
-        const cellElement = (vm.$refs[ref] as HTMLInputElement[])[0];
-        expect(cellElement.type).toBe(SECURE_INPUT_TYPE);
-      });
+    await vm.$nextTick();
+
+    const refs = Object.keys(vm.$refs);
+    refs.forEach((ref: string) => {
+      const cellElement = (vm.$refs[ref] as HTMLInputElement[])[0];
+      expect(cellElement.type).toBe(SECURE_INPUT_TYPE);
     });
   });
 
