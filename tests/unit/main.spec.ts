@@ -61,11 +61,11 @@ describe('Component.vue', () => {
       value: '',
       autofocus: false,
     };
-    const { vm } = mount(Component, { propsData });
+    const wrapper = mount(Component, { propsData });
 
-    await vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    const cell = wrapper.findComponent({ ref: 'vue-pincode-input0' }).element;
 
-    const cell = (vm.$refs['vue-pincode-input0'] as HTMLInputElement[])[0];
     expect(document.activeElement === cell).toBe(false);
   });
 
@@ -75,13 +75,13 @@ describe('Component.vue', () => {
       secure: true,
       characterPreview: false,
     };
-    const { vm } = mount(Component, { propsData });
+    const wrapper = mount(Component, { propsData });
 
-    await vm.$nextTick();
+    await wrapper.vm.$nextTick();
 
-    const refs = Object.keys(vm.$refs);
+    const refs = Object.keys(wrapper.vm.$refs);
     refs.forEach((ref: string) => {
-      const cellElement = (vm.$refs[ref] as HTMLInputElement[])[0];
+      const cellElement = wrapper.findComponent({ ref }).element as HTMLInputElement;
       expect(cellElement.type).toBe(SECURE_INPUT_TYPE);
     });
   });
