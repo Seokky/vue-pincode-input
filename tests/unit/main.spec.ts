@@ -5,23 +5,23 @@ import Component from '@/plugin//Component.vue';
 const DEFAULT_LENGTH = 4;
 
 describe('Component.vue', () => {
-  it('correctly creates letters with "length" prop', () => {
+  it('correctly creates cells with "length" prop', () => {
     const propsData = {
       length: 5,
       value: '',
     };
     const { vm } = mount(Component, { propsData });
-    const lettersCount = vm.$data.letters.length;
+    const cellsCount = vm.$data.cells.length;
 
-    expect(lettersCount).toEqual(propsData.length);
+    expect(cellsCount).toEqual(propsData.length);
   });
 
-  it('correctly creates letters without "length" prop', () => {
+  it('correctly creates cells without "length" prop', () => {
     const propsData = { value: '' };
     const { vm } = mount(Component, { propsData });
-    const lettersCount = vm.$data.letters.length;
+    const cellsCount = vm.$data.cells.length;
 
-    expect(lettersCount).toEqual(DEFAULT_LENGTH);
+    expect(cellsCount).toEqual(DEFAULT_LENGTH);
   });
 
   it('correctly creates watchers with "length" prop', () => {
@@ -43,7 +43,7 @@ describe('Component.vue', () => {
     expect(watchersCount).toEqual(DEFAULT_LENGTH);
   });
 
-  it('focus first letter when autofocus enabled', async () => {
+  it('focus first cell when autofocus enabled', async () => {
     const propsData = {
       value: '',
       autofocus: true,
@@ -52,11 +52,11 @@ describe('Component.vue', () => {
 
     await vm.$nextTick();
 
-    const { focusedLetterIdx } = vm.$data;
-    expect(focusedLetterIdx).toEqual(0);
+    const { focusedCellIdx } = vm.$data;
+    expect(focusedCellIdx).toEqual(0);
   });
 
-  it('do not focus first letter when autofocus disabled', async () => {
+  it('do not focus first cell when autofocus disabled', async () => {
     const propsData = {
       value: '',
       autofocus: false,

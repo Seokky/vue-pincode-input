@@ -1,15 +1,15 @@
 <template>
   <div class="vue-pincode-input-wrapper">
     <input
-      v-for="(letter, index) in letters"
-      :key="letter.key"
+      v-for="(cell, index) in cells"
+      :key="cell.key"
       :ref="`${baseRefName}${index}`"
-      v-model.trim="letter.value"
+      v-model.trim="cell.value"
       v-bind="$attrs"
       class="vue-pincode-input"
-      :type="lettersInputTypes[index]"
-      @focus="focusedLetterIdx = index"
-      @keydown.delete="onLetterErase(index, $event)"
+      :type="cellsInputTypes[index]"
+      @focus="focusedCellIdx = index"
+      @keydown.delete="onCellErase(index, $event)"
     >
   </div>
 </template>
@@ -17,30 +17,25 @@
 <script lang="ts">
 import Vue from 'vue';
 import props from './props';
-import { Letter } from './types/Letter';
-import { InputType } from './types/InputType';
-import { LettersInputTypes } from './types/LettersInputTypes';
+import { State, CellInputType } from './types';
 import {
-  BASE_REF_NAME,
-  LETTER_REGEXP,
-  DEFAULT_INPUT_TYPE,
-  SECURE_INPUT_TYPE,
+  BASE_REF_NAME, CELL_REGEXP, DEFAULT_INPUT_TYPE, SECURE_INPUT_TYPE,
 } from './constants';
 
 export default Vue.extend({
   props,
 
-  data: () => ({
+  data: (): State => ({
     baseRefName: BASE_REF_NAME,
-    focusedLetterIdx: 0,
-    letters: [] as Letter[],
-    watchers: {} as Record<string, Function>,
-    lettersInputTypes: {} as LettersInputTypes,
+    focusedCellIdx: 0,
+    cells: [],
+    watchers: {},
+    cellsInputTypes: {},
   }),
 
   computed: {
     pinCodeComputed(): string {
-      return this.letters.reduce((pin, letter) => pin + letter.value, '');
+      return this.cells.reduce((pin, cell) => pin + cell.value, '');
     },
   },
 
@@ -67,42 +62,42 @@ export default Vue.extend({
     this.onParentValueUpdated();
 
     if (this.autofocus) {
-      this.$nextTick(this.focusLetterByIndex.bind(this, 0));
+      this.$nextTick(this.focusCellByIndex);
     }
   },
 
   methods: {
     /* init stuff */
 
-    init() {
+    init(): void {
       const inputType = this.getRelevantInputType();
       for (let key = 0; key < this.length; key += 1) {
-        this.setLetterObject(key);
-        this.setLetterInputType(key, inputType);
-        this.setLetterWatcher(key);
+        this.setCellObject(key);
+        this.setCellInputType(key, inputType);
+        this.setCellWatcher(key);
       }
     },
 
-    setLetterObject(key: number) {
-      this.$set(this.letters, key, { key, value: '' });
+    setCellObject(key: number): void {
+      this.$set(this.cells, key, { key, value: '' });
     },
 
-    setLetterInputType(index: number, inputType: InputType) {
-      this.$set(this.lettersInputTypes, index, inputType);
+    setCellInputType(index: number, inputType: CellInputType = SECURE_INPUT_TYPE): void {
+      this.$set(this.cellsInputTypes, index, inputType);
     },
 
-    setLetterWatcher(index: number) {
-      const watchingProperty = `letters.${index}.value`;
+    setCellWatcher(index: number): void {
+      const watchingProperty = `cells.${index}.value`;
 
       this.watchers[watchingProperty] = this.$watch(
         watchingProperty,
-        (newVal, oldVal) => this.onLetterChanged(index, newVal, oldVal),
+        (newVal, oldVal) => this.onCellChanged(index, newVal, oldVal),
       );
     },
 
     /* handlers */
 
-    onParentValueUpdated() {
+    onParentValueUpdated(): void {
       if (this.value.length !== this.length) {
         this.$emit('input', this.pinCodeComputed);
         return;
@@ -110,87 +105,83 @@ export default Vue.extend({
 
       this.value
         .split('')
-        .forEach((letter: string, idx: number) => {
-          this.letters[idx].value = letter || '';
+        .forEach((cell: string, idx: number) => {
+          this.cells[idx].value = cell || '';
         });
     },
 
-    onLetterChanged(index: number, newVal: string, oldVal: string): void {
-      if (!newVal.length || !this.isTheLetterValid(newVal)) {
-        this.letters[index].value = '';
+    onCellChanged(index: number, newVal: string, oldVal: string): void {
+      if (!this.isTheCellValid(newVal, false)) {
+        this.cells[index].value = '';
         return;
       }
 
-      this.focusNextLetter();
+      this.focusNextCell();
 
       /* performing character preview if it's enabled */
       if (this.secure && this.characterPreview) {
-        setTimeout(
-          this.setLetterInputType,
-          this.charPreviewDuration,
-          index,
-          SECURE_INPUT_TYPE,
-        );
+        setTimeout(this.setCellInputType, this.charPreviewDuration, index);
       }
     },
 
-    onLetterErase(index: number, e: Event) {
-      const isThisCellFilled = this.letters[index].value.length;
+    onCellErase(index: number, e: Event): void {
+      const isThisCellFilled = this.cells[index].value.length;
 
       if (!isThisCellFilled) {
-        this.focusPreviousLetter();
+        this.focusPreviousCell();
         e.preventDefault();
       }
     },
 
     /* reset stuff */
 
-    reset() {
-      this.unwatchLetters();
+    reset(): void {
+      this.unwatchCells();
       this.init();
-      this.focusLetterByIndex(0);
+      this.focusCellByIndex();
     },
 
-    unwatchLetters(): void {
+    unwatchCells(): void {
       const watchers = Object.keys(this.watchers);
-      watchers.forEach(watcherName => this.watchers[watcherName]());
+      watchers.forEach(name => this.watchers[name]());
     },
 
     /* helpers */
 
-    isTheLetterValid(letter: string): boolean {
-      if (!letter) {
-        return letter === '';
+    isTheCellValid(cell: string, allowEmpty = true): boolean {
+      if (!cell) {
+        return allowEmpty ? cell === '' : false;
       }
 
-      return !!letter.match(LETTER_REGEXP);
+      return !!cell.match(CELL_REGEXP);
     },
 
-    getRelevantInputType(): InputType {
+    getRelevantInputType(): CellInputType {
       return this.secure && !this.characterPreview
         ? SECURE_INPUT_TYPE
         : DEFAULT_INPUT_TYPE;
     },
 
-    focusPreviousLetter() {
-      if (!this.focusedLetterIdx) return;
+    focusPreviousCell(): void {
+      if (!this.focusedCellIdx) return;
 
-      this.focusLetterByIndex(this.focusedLetterIdx - 1);
+      this.focusCellByIndex(this.focusedCellIdx - 1);
     },
 
-    focusNextLetter() {
-      if (this.focusedLetterIdx === this.length - 1) return;
+    focusNextCell(): void {
+      if (this.focusedCellIdx === this.length - 1) return;
 
-      this.focusLetterByIndex(this.focusedLetterIdx + 1);
+      this.focusCellByIndex(this.focusedCellIdx + 1);
     },
 
-    focusLetterByIndex(index: number): void {
-      const letterRef = `${this.baseRefName}${index}`;
+    focusCellByIndex(index: number = 0): void {
+      const ref = `${this.baseRefName}${index}`;
+      const el = (this.$refs[ref] as HTMLInputElement[])[0];
 
-      (this as any).$refs[letterRef][0].focus();
-      (this as any).$refs[letterRef][0].select();
+      el.focus();
+      el.select();
 
-      this.focusedLetterIdx = index;
+      this.focusedCellIdx = index;
     },
   },
 });
