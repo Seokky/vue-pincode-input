@@ -10,6 +10,7 @@
       :type="cellsInputTypes[index]"
       @focus="focusedCellIdx = index"
       @keydown.delete="onCellErase(index, $event)"
+      @keydown="onKeyDown"
     >
   </div>
 </template>
@@ -130,6 +131,23 @@ export default Vue.extend({
       if (!isThisCellFilled) {
         this.focusPreviousCell();
         e.preventDefault();
+      }
+    },
+
+    onKeyDown(e: KeyboardEvent): void {
+      switch (e.keyCode) {
+        /* left arrow key */
+        case 37:
+          this.focusPreviousCell();
+          break;
+
+        /* right arrow key */
+        case 39:
+          this.focusNextCell();
+          break;
+
+        default:
+          break;
       }
     },
 
