@@ -11,17 +11,16 @@
       @focus="focusedCellIdx = index"
       @keydown.delete="onCellErase(index, $event)"
       @keydown="onKeyDown"
-    >
+    />
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import props from './props';
-import { State, CellInputType } from './types';
-import {
-  BASE_REF_NAME, CELL_REGEXP, DEFAULT_INPUT_TYPE, SECURE_INPUT_TYPE,
-} from './constants';
+// import Vue from "vue";
+import { Vue } from "vue-property-decorator";
+import props from "./props";
+import { State, CellInputType } from "./types";
+import { BASE_REF_NAME, CELL_REGEXP, DEFAULT_INPUT_TYPE, SECURE_INPUT_TYPE } from "./constants";
 
 export default Vue.extend({
   props,
@@ -31,13 +30,13 @@ export default Vue.extend({
     focusedCellIdx: 0,
     cells: [],
     watchers: {},
-    cellsInputTypes: {},
+    cellsInputTypes: {}
   }),
 
   computed: {
     pinCodeComputed(): string {
-      return this.cells.reduce((pin, cell) => pin + cell.value, '');
-    },
+      return this.cells.reduce((pin, cell) => pin + cell.value, "");
+    }
   },
 
   watch: {
@@ -54,8 +53,8 @@ export default Vue.extend({
     },
 
     pinCodeComputed(val: string) {
-      this.$emit('input', val);
-    },
+      this.$emit("input", val);
+    }
   },
 
   mounted() {
@@ -80,7 +79,7 @@ export default Vue.extend({
     },
 
     setCellObject(key: number): void {
-      this.$set(this.cells, key, { key, value: '' });
+      this.$set(this.cells, key, { key, value: "" });
     },
 
     setCellInputType(index: number, inputType: CellInputType = SECURE_INPUT_TYPE): void {
@@ -90,9 +89,8 @@ export default Vue.extend({
     setCellWatcher(index: number): void {
       const watchingProperty = `cells.${index}.value`;
 
-      this.watchers[watchingProperty] = this.$watch(
-        watchingProperty,
-        (newVal, oldVal) => this.onCellChanged(index, newVal, oldVal),
+      this.watchers[watchingProperty] = this.$watch(watchingProperty, (newVal, oldVal) =>
+        this.onCellChanged(index, newVal, oldVal)
       );
     },
 
@@ -100,25 +98,25 @@ export default Vue.extend({
 
     onParentValueUpdated(): void {
       if (this.value.length !== this.length) {
-        this.$emit('input', this.pinCodeComputed);
+        this.$emit("input", this.pinCodeComputed);
         return;
       }
 
-      this.value
-        .split('')
-        .forEach((cell: string, idx: number) => {
-          this.cells[idx].value = cell || '';
-        });
+      this.value.split("").forEach((cell: string, idx: number) => {
+        this.cells[idx].value = cell || "";
+      });
     },
 
-    onCellChanged(index: number, newVal: string, oldVal: string): void {
+    onCellChanged(index: number, newVal: string): void {
       if (!this.isTheCellValid(newVal, false)) {
-        this.cells[index].value = '';
+        const replaceVal = newVal;
+        // 同一个输入框再次输入，只显示后面输入的那个数字
+        this.cells[index].value = replaceVal.slice(replaceVal.length - 1);
         return;
       }
 
       this.focusNextCell();
-
+      this.$emit("change", this.pinCodeComputed);
       /* performing character preview if it's enabled */
       if (this.secure && this.characterPreview) {
         setTimeout(this.setCellInputType, this.charPreviewDuration, index);
@@ -168,16 +166,14 @@ export default Vue.extend({
 
     isTheCellValid(cell: string, allowEmpty = true): boolean {
       if (!cell) {
-        return allowEmpty ? cell === '' : false;
+        return allowEmpty ? cell === "" : false;
       }
 
       return !!cell.match(CELL_REGEXP);
     },
 
     getRelevantInputType(): CellInputType {
-      return this.secure && !this.characterPreview
-        ? SECURE_INPUT_TYPE
-        : DEFAULT_INPUT_TYPE;
+      return this.secure && !this.characterPreview ? SECURE_INPUT_TYPE : DEFAULT_INPUT_TYPE;
     },
 
     focusPreviousCell(): void {
@@ -200,8 +196,8 @@ export default Vue.extend({
       el.select();
 
       this.focusedCellIdx = index;
-    },
-  },
+    }
+  }
 });
 </script>
 

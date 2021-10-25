@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "core-js": "^2.6.11",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "vue-property-decorator": "^9.1.2"
   },
   "devDependencies": {
     "@types/jest": "^23.1.4",
